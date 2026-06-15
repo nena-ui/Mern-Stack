@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to our art gallery</title>
+    
+    <style>
+
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+
+        .container{
+            display: flex;
+            justify-content: center;
+            background-image: url(./image.jpg);
+            background-position: center;
+            background-repeat: no repeat;
+            background-size: cover;
+            height: 100vh;
+            color: white;
+            padding: 40vh;
+        }
+
+        .card{
+            width: 400px;
+            margin: auto auto;
+            border: 1px solid white;
+            padding: 16px;
+            text-align: center;
+            border-radius: 16px;
+        }
+
+        input{  
+            background: rgb(192, 192, 236);
+            border: none;
+            outline: none;
+            color: white;
+            border-bottom: 1px solid white;
+        }
+
+        .abc{
+            padding: 10px;
+        }
+
+        input::placeholder{
+            color: rgba(91, 127, 167, 0.726);
+        }
+
+    </style>
+    
+</head>
+<body>
+     <div class="container">
+        <div class="card">
+            <h1>Login</h1>
+            <div class="abc">
+            <input type="text" placeholder="Enter your username">
+            </div>
+
+            <div class="abc">
+            <input type="password" placeholder="Enter your password">
+     </div>
+        <input type="checkbox" >Remember me
+        <div class="abc">
+            <button>Submit</button>
+        </div>
+        <p>Create an account</p>
+        </div>
+    </div>
+    
+</body>
+</html>
