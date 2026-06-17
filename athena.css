@@ -82,3 +82,48 @@ nav{
     p{
         margin-bottom: 16px;
     }
+
+    .card{
+    width: 400px;
+    margin: 20px auto;
+    background-color: white;
+    /* color: blue; */
+}
+ 
+   .card img{
+  width: 100%;
+}
+
+/* .card h5,.card h3 {
+    margin: 0 20px;
+    
+} */
+ .content{
+    padding: 10px 20px;
+ }
+
+ .card h3{
+    margin: 10px 0;
+ }
+
+
+ hr{
+    margin: 10px 0;
+
+ }
+
+ .icons{
+   color: red;
+   font-size: 2px;
+ }
+
+ .featured{
+    padding: 20px 80px;
+ }
+
+ card{
+    display: grid;
+    /* justify-content: space-between; */
+    grid-template-rows: repeat(4,1fr);
+    gap: 30px;
+ }
