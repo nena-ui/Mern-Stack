@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tranform and Transition</title>
+</head>
+<body>
+    <style>
+
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .container{
+            height: 400px;
+            width: 400px;
+            /* background-color: burlywood; */
+            margin: 50px auto;
+        }
+        .box{
+            height: 300px;
+            width: 300px;
+            background-color: cadetblue;
+            /* transform: scale(1.02); */
+            /* transform: translateX(100px); */
+            /* transform: rotate(90deg); */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* transition-duration: 4s;
+           transition-property: all;
+           transition-timing-function: cubic-bezier(0, -0.77, 0.75, 1.08);
+           transition-timing-function: linear; */
+           transition: all 2s linear;
+
+            
+        }
+       
+
+        .box:hover{
+            /* transform: scale(1.02); */
+            /* transform: translateX(100px); */
+            transform: rotate(360deg);
+            border-radius: 50%;
+            /* transform: scale(2); */
+            background-color: purple;
+            color: white;
+
+            /* transform: skewY(30deg); */
+
+        }
+
+     
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="box">
+          <h1  >Box</h1>
+        </div>
+    </div>
+    
+</body>
+</html>
+
