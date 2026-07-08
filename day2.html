@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form </title>
+   
+    <link rel="stylesheet" href="./style.css">
+<!-- internal css -->
+    <style>
+
+        /* selector {
+            property:value
+        } */
+         /* 
+         p{
+            color: red;
+         }
+
+         h1{
+            color: yellow;
+         } */
+
+    </style>
+</head>
+<body>
+<!-- Types of css
+    inline css
+    internal css
+    external css -->
+
+    <!-- inline css -->
+    <h1 >Form Submission</h1> 
+
+    <p >Lorem ipsum dolor, sit amet consectetur adipisicing elit. Nostrum, sint.</p>
+   
+    <form onsubmit="" >
+     <label for="name">Full Name: </label>
+        <input type="text" id="name" required>
+
+        <br><br>
+
+     <label for="pw"> Password: </label>
+
+        <input type="password" id="pw" value="">
+
+        <br><br>
+
+     <label for="number"> Age: </label>
+
+        <input type="number" id="number">
+
+        <br> <br>
+
+        <label for="color">Choose any color:</label>
+        <input type="color" >
+        <br><br>
+
+        <input type="checkbox" id="yes">
+        <label for="yes">Yes I agree terms and conditions</label>
+        <br><br>
+
+
+        <input type="radio" name="gender" id="boy">
+         <label for="boy">Male</label>
+
+        <input type="radio" name="gender" id="female">
+        <label for="female">Female</label>
+        <br> <br>
+        <!-- <input type="radio" name="gender" > example -->
+
+
+
+        
+        <input type="radio" name="class" id="ug">
+         <label for="ug">UnderGraduate</label>
+
+        <input type="radio" name="class" id="g">
+        <label for="g">Graduate</label>
+       
+       <br><br>
+
+       <input type="file">
+
+     <label for="date"> Date: </label>
+
+        <input type="date" id="date">
+
+        <br><br>
+<label for="message">Message:</label>
+        <textarea cols="50" rows="10"  id="message"></textarea>
+
+        <!-- <input type="button" value="click"> -->
+        <!-- <button>click</button> -->
+
+
+        <br><br>
+        <select >
+            <option value="np">Nepal</option>
+            <option value="in">India</option>
+            <option value="ch">China</option>
+        </select>
+
+
+        <br><br>
+        <button type="submit"> Submit</button>
+    </form>
+</body>
+</html>

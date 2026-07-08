@@ -1,0 +1,75 @@
+/* external css */
+
+/* selector {
+   property:value
+} */
+
+/* types of selector 
+-> Id
+-> Class
+-> Elements (html elements) */
+
+     /* ICE */
+/* ->Universal selector */
+
+
+*{
+  border: 1px solid red; 
+  
+}
+
+
+p {
+  color: red;
+}
+
+.para{
+   color: green  !important
+}
+
+#yell {
+   color: yellow;
+}
+
+h1 {
+  color: yellow;
+}
+
+
+
+.btnclass{
+   background-color: green;
+   color: white;
+
+}
+
+#btn{
+   background-color: yellow;
+
+}
+
+button {
+   background-color: brown !important
+}
+
+
+button{
+   background-color: red;
+}
+
+
+
+
+
+.first{
+   color: green;
+}
+
+
+
+
+
+
+
+
+

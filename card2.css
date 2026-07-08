@@ -1,0 +1,48 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; 
+}
+
+nav{
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 80px;
+    height: 10vh;
+    align-items: center;
+}
+.nav-items{
+    display: flex;
+    gap: 40px;
+}
+.hero{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 80px;
+    height: 90vh;
+}
+.hero .textarea{
+    width: 40%;
+}
+
+.hero .imgarea{
+  height: 450px;
+  width: 450px;
+  position: relative;
+}
+.imgarea img{
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.yellow{
+    background-color: #FED789;
+    height: 80px;
+    width: 80px;
+    border-radius: 50%;
+    position: absolute;
+    left: 100px;
+  bottom: -30px;
+}

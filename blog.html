@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">Doc<span>Viewer</span></div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost btn-sm" id="btnClearEditor" disabled>Clear</button>
+    <button class="btn btn-primary btn-sm" id="btnExtract" disabled>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Extract &amp; Load
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-title">Upload Document</div>
+    </div>
+
+    <label class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept=".pdf,.doc,.docx" />
+      <span class="upload-icon">📄</span>
+      <div class="upload-label">Click or drag a file here</div>
+      <div class="upload-hint">PDF, DOC, DOCX — max 25 MB</div>
+    </label>
+
+    <div class="file-card" id="fileCard">
+      <span class="file-card-icon" id="fileCardIcon">📄</span>
+      <div class="file-card-info">
+        <div class="file-card-name" id="fileCardName">—</div>
+        <div class="file-card-meta" id="fileCardMeta">—</div>
+      </div>
+      <button class="file-card-remove" id="btnRemoveFile" title="Remove file">✕</button>
+    </div>
+
+    <hr class="sidebar-divider" />
+
+    <div>
+      <div class="field-label">API Endpoint</div>
+      <input class="field-input" type="text" id="apiUrl" value="/api/ta/v1/extract" placeholder="/api/ta/v1/extract" />
+    </div>
+
+    <hr class="sidebar-divider" />
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="status-box" id="statusBox"></div>
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-chip">
+        <div class="stat-val" id="statType">—</div>
+        <div class="stat-lbl">Type</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-val" id="statChars">—</div>
+        <div class="stat-lbl">Chars</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-val" id="statSize">—</div>
+        <div class="stat-lbl">HTML KB</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <main class="editor-area">
+
+    <div class="editor-header">
+      <div>
+        <div class="editor-title" id="editorTitle">Document Preview</div>
+        <div class="editor-subtitle" id="editorSubtitle">Upload a document on the left to get started</div>
+      </div>
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tabEditor" onclick="switchMode('editor')">Editor</button>
+        <button class="mode-tab" id="tabRaw" onclick="switchMode('raw')">Raw HTML</button>
+      </div>
+    </div>
+
+    <div class="editor-wrap" id="editorWrap">
+      <div class="empty-state" id="emptyState">
+        <span class="empty-icon">📂</span>
+        <div class="empty-title">No document loaded</div>
+        <div class="empty-hint">Upload a PDF or Word file and click "Extract &amp; Load"</div>
+      </div>
+      <textarea id="sunEditor"></textarea>
+    </div>
+
+    <div class="raw-panel" id="rawPanel">
+      <div class="raw-panel-header">
+        <span class="raw-panel-label">Raw HTML</span>
+        <button class="btn btn-ghost btn-sm" onclick="copyRaw()">Copy</button>
+      </div>
+      <pre id="rawHtml"></pre>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ════════════════════════════════════════════════════════════════
+  // FIXED: Direct DOM manipulation with proper SunEditor handling
+  // ════════════════════════════════════════════════════════════════
+
+  let selectedFile = null;
+  let currentMode  = 'editor';
+  let editor       = null;
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  function fileIcon(name) {
+    const ext = (name || '').split('.').pop().toLowerCase();
+    if (ext === 'pdf')  return '📕';
+    if (ext === 'docx' || ext === 'doc') return '📘';
+    return '📄';
+  }
+
+  function setStatus(msg, type) {
+    const box = document.getElementById('statusBox');
+    if (!msg) { box.classList.remove('visible'); return; }
+    box.className = 'status-box visible ' + (type || 'info');
+    box.textContent = msg;
+  }
+
+  function setProgress(pct) {
+    const wrap = document.getElementById('progressWrap');
+    const bar  = document.getElementById('progressBar');
+    if (pct === null) { wrap.classList.remove('visible'); bar.style.width = '0%'; return; }
+    wrap.classList.add('visible');
+    bar.style.width = pct + '%';
+  }
+
+  function onFileSelected(file) {
+    if (!file) return;
+    selectedFile = file;
+    document.getElementById('fileCardIcon').textContent = fileIcon(file.name);
+    document.getElementById('fileCardName').textContent = file.name;
+    document.getElementById('fileCardMeta').textContent =
+      formatBytes(file.size) + ' · ' + file.name.split('.').pop().toUpperCase();
+    document.getElementById('fileCard').classList.add('visible');
+    document.getElementById('uploadZone').style.display = 'none';
+    document.getElementById('btnExtract').disabled = false;
+    setStatus('');
+  }
+
+  function clearFile() {
+    selectedFile = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('fileCard').classList.remove('visible');
+    document.getElementById('uploadZone').style.display = '';
+    document.getElementById('btnExtract').disabled = true;
+    document.getElementById('statsRow').classList.remove('visible');
+    setStatus('');
+  }
+
+  // ── CRITICAL FIX: Parse HTML and insert directly into editor ──
+  function insertHtmlInOrder(html) {
+    // Create a temporary container
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+
+    // Get all child nodes in order
+    const children = Array.from(tempDiv.childNodes);
+
+    // Get the editor's editable area
+    const editorElement = document.querySelector('.sun-editor-editable');
+    if (!editorElement) {
+      console.error('Editor element not found');
+      return;
+    }
+
+    // Clear the editor
+    editorElement.innerHTML = '';
+
+    // Process and append each child in order
+    children.forEach(child => {
+      if (child.nodeType === 3) { // Text node
+        // Skip empty text nodes
+        const text = child.textContent.trim();
+        if (text) {
+          const p = document.createElement('p');
+          p.textContent = text;
+          editorElement.appendChild(p);
+        }
+      } else if (child.nodeType === 1) { // Element node
+        if (child.tagName === 'TABLE') {
+          // Check if it's a single-cell table (callout)
+          const rows = child.querySelectorAll('tr');
+          const totalCells = child.querySelectorAll('td, th').length;
+
+          if (rows.length === 1 && totalCells === 1) {
+            // Convert single-cell table to callout div
+            const cell = child.querySelector('td, th');
+            const divBox = document.createElement('div');
+            divBox.className = 'extracted-callout';
+            divBox.innerHTML = cell.innerHTML;
+            editorElement.appendChild(divBox);
+          } else {
+            // Clone the table and ensure it has tbody
+            const tableClone = child.cloneNode(true);
+            if (!tableClone.querySelector('tbody')) {
+              const tbody = document.createElement('tbody');
+              const trElements = Array.from(tableClone.children).filter(el => el.tagName === 'TR');
+              trElements.forEach(tr => tbody.appendChild(tr));
+              tableClone.innerHTML = '';
+              tableClone.appendChild(tbody);
+            }
+            editorElement.appendChild(tableClone);
+          }
+        } else {
+          // Clone non-table elements
+          const clone = child.cloneNode(true);
+          editorElement.appendChild(clone);
+        }
+      }
+    });
+
+    // Force SunEditor to update its internal state
+    if (editor) {
+      // Use the editor's context to trigger an update
+      const editorInstance = editor;
+      if (editorInstance.core && editorInstance.core.context) {
+        // This triggers SunEditor's internal update mechanism
+        editorInstance.core.context.element.wysiwyg.innerHTML = editorElement.innerHTML;
+        // Update the textarea value
+        if (editorInstance.core.context.element.textarea) {
+          editorInstance.core.context.element.textarea.value = editorElement.innerHTML;
+        }
+        // Trigger change event
+        if (editorInstance.onChange) {
+          editorInstance.onChange(editorElement.innerHTML);
+        }
+      }
+    }
+  }
+
+  function loadIntoEditor(data) {
+    let html = data.html || '';
+    const text = data.text || '';
+
+    // Hide empty state
+    document.getElementById('emptyState').classList.add('hidden');
+
+    // Insert HTML directly into the editor DOM in order
+    insertHtmlInOrder(html);
+
+    // Update Raw HTML view
+    document.getElementById('rawHtml').textContent = html;
+
+    document.getElementById('editorTitle').textContent = data.filename || 'Document';
+    document.getElementById('editorSubtitle').textContent =
+      (data.file_type || '').toUpperCase() + ' · Loaded at ' + new Date().toLocaleTimeString();
+    document.getElementById('statType').textContent  = (data.file_type || '—').toUpperCase();
+    document.getElementById('statChars').textContent = text.length.toLocaleString();
+    document.getElementById('statSize').textContent  = (html.length / 1024).toFixed(1);
+    document.getElementById('statsRow').classList.add('visible');
+    document.getElementById('btnClearEditor').disabled = false;
+  }
+
+  function switchMode(mode) {
+    currentMode = mode;
+    document.getElementById('tabEditor').classList.toggle('active', mode === 'editor');
+    document.getElementById('tabRaw').classList.toggle('active', mode === 'raw');
+    document.getElementById('editorWrap').style.display  = mode === 'editor' ? '' : 'none';
+    document.getElementById('rawPanel').classList.toggle('visible', mode === 'raw');
+  }
+
+  function copyRaw() {
+    const rawContent = document.getElementById('rawHtml').textContent;
+    navigator.clipboard.writeText(rawContent).then(() => {
+      setStatus('Raw HTML copied to clipboard.', 'success');
+      setTimeout(() => setStatus(''), 2000);
+    }).catch(() => {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = rawContent;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setStatus('Raw HTML copied to clipboard.', 'success');
+      setTimeout(() => setStatus(''), 2000);
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Init
+  // ════════════════════════════════════════════════════════════════
+
+  function initApp() {
+    if (typeof SUNEDITOR === 'undefined') {
+      console.error('[DocViewer] SUNEDITOR global is still undefined after load.');
+      setStatus('Editor library failed to load (check console / network tab).', 'error');
+      return;
+    }
+
+    const target = document.getElementById('sunEditor');
+    if (!target) {
+      console.error('[DocViewer] #sunEditor textarea not found in DOM.');
+      setStatus('Internal error: editor target element missing.', 'error');
+      return;
+    }
+
+    editor = SUNEDITOR.create(target, {
+      width: '100%',
+      height: 'auto',
+      minHeight: '600px',
+      buttonList: [
+        ['undo', 'redo'],
+        ['fontSize', 'formatBlock'],
+        ['bold', 'underline', 'italic', 'strike'],
+        ['fontColor', 'hiliteColor'],
+        ['align', 'horizontalRule', 'list'],
+        ['table', 'link'],
+        ['fullScreen', 'showBlocks', 'codeView'],
+        ['print'],
+      ],
+    });
+
+    // File input
+    document.getElementById('fileInput').addEventListener('change', function () {
+      if (this.files && this.files[0]) onFileSelected(this.files[0]);
+    });
+
+    // Drag & drop
+    const zone = document.getElementById('uploadZone');
+    zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', ()  => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) onFileSelected(e.dataTransfer.files[0]);
+    });
+
+    // Remove file
+    document.getElementById('btnRemoveFile').addEventListener('click', clearFile);
+
+    // Extract & load
+    document.getElementById('btnExtract').addEventListener('click', async () => {
+      if (!selectedFile) { setStatus('Please select a file first.', 'error'); return; }
+
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      if (!apiUrl) { setStatus('Please enter a valid API endpoint URL.', 'error'); return; }
+
+      document.getElementById('btnExtract').disabled = true;
+      setStatus('Uploading document…', 'info');
+      setProgress(20);
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        setProgress(50);
+        const res = await fetch(apiUrl, { method: 'POST', body: formData });
+        setProgress(80);
+
+        if (!res.ok) {
+          let detail = 'HTTP ' + res.status;
+          try { const err = await res.json(); detail = err.detail || detail; } catch {}
+          throw new Error(detail);
+        }
+
+        const data = await res.json();
+        setProgress(100);
+        loadIntoEditor(data);
+        setStatus('✓ Loaded "' + data.filename + '" successfully.', 'success');
+        setTimeout(() => setProgress(null), 600);
+
+      } catch (err) {
+        setStatus('Error: ' + err.message, 'error');
+        setProgress(null);
+      } finally {
+        document.getElementById('btnExtract').disabled = false;
+      }
+    });
+
+    // Clear editor
+    document.getElementById('btnClearEditor').addEventListener('click', () => {
+      const editorElement = document.querySelector('.sun-editor-editable');
+      if (editorElement) {
+        editorElement.innerHTML = '';
+        // Update the editor's internal state
+        if (editor && editor.core && editor.core.context) {
+          editor.core.context.element.wysiwyg.innerHTML = '';
+          if (editor.core.context.element.textarea) {
+            editor.core.context.element.textarea.value = '';
+          }
+        }
+      }
+      document.getElementById('rawHtml').textContent = '';
+      document.getElementById('emptyState').classList.remove('hidden');
+      document.getElementById('editorTitle').textContent = 'Document Preview';
+      document.getElementById('editorSubtitle').textContent = 'Upload a document on the left to get started';
+      document.getElementById('statsRow').classList.remove('visible');
+      document.getElementById('btnClearEditor').disabled = true;
+      setStatus('');
+    });
+  }
+
+  if (typeof SUNEDITOR !== 'undefined') {
+    console.log('[DocViewer] SunEditor loaded, initializing app.');
+    // Wait a tick for the editor to fully initialize
+    setTimeout(initApp, 100);
+  } else {
+    console.error('[DocViewer] SUNEDITOR is not defined. Check the CDN link in the <head>.');
+    setStatus('Editor library failed to load.', 'error');
+    document.getElementById('emptyState').innerHTML =
+      '<span class="empty-icon">⚠️</span>' +
+      '<div class="empty-title">Editor failed to load</div>' +
+      '<div class="empty-hint">Check the browser console / network tab for the failed request.</div>';
+  }
+</script>
+</body>
+</html>
